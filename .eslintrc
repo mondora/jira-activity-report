@@ -1,0 +1,6 @@
+{
+    "extends": ["eslint-config-staticdeploy/react"],
+    "rules": {
+        "react/jsx-filename-extension": [0]
+    }
+}
