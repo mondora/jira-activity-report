@@ -1,7 +1,9 @@
+import PropTypes from "prop-types";
 import React, {Component} from "react";
-import {Redirect, Route} from "react-router-dom";
+import {connect} from "react-redux";
 
-import Login from "./Login";
+import Homepage from "./Homepage";
+import PrivateRoot from "../components/PrivateRoute";
 
 const styles = {
     container: {
@@ -10,21 +12,25 @@ const styles = {
     }
 };
 
-export default class Root extends Component {
+class Root extends Component {
+
+    static propTypes = {
+        auth: PropTypes.shape({
+            account: PropTypes.string,
+            password: PropTypes.string,
+            username: PropTypes.string
+        }).isRequired
+    }
 
     render () {
+        const {auth} = this.props;
         return (
             <div className="v-Root" style={styles.container}>
-                <Route
+                <PrivateRoot
+                    auth={auth}
+                    component={Homepage}
                     exact={true}
                     path="/"
-                    render={() => <Redirect to="/login/" />}
-                    strict={true}
-                />
-                <Route
-                    component={Login}
-                    exact={true}
-                    path="/login/"
                     strict={false}
                 />
             </div>
@@ -32,3 +38,11 @@ export default class Root extends Component {
     }
 
 }
+
+function mapStateToProps (state) {
+    return {
+        auth: state.auth
+    };
+}
+
+export default connect(mapStateToProps)(Root);
