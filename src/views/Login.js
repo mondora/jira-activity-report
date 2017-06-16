@@ -1,4 +1,4 @@
-import {RaisedButton, TextField} from "material-ui";
+import {RaisedButton, TextField, CircularProgress, Dialog} from "material-ui";
 import * as colors from "material-ui/styles/colors";
 import PropTypes from "prop-types";
 import {isEmpty} from "ramda";
@@ -44,13 +44,23 @@ const styles = {
         bottom: 20,
         width: 175
     },
+    dialog: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        position: "relative"
+    },
+    progress: {
+        background: "transparent",
+        color: colors.blue700
+    },
     logoContainer: {
         fontSize: 12,
         color: colors.grey600,
-        cursor: "pointer",
         paddingTop: 50
     },
     logo: {
+        cursor: "pointer",
         width: 40,
         height: 40
     }
@@ -59,6 +69,10 @@ const styles = {
 class Login extends Component {
 
     static propTypes = {
+        auth: PropTypes.shape({
+            isLoggingIn: PropTypes.bool.isRequired,
+            isLoggedIn: PropTypes.bool.isRequired
+        }).isRequired,
         history: PropTypes.object.isRequired,
         login: PropTypes.func.isRequired
     }
@@ -71,10 +85,13 @@ class Login extends Component {
             password: "",
             errorAccountMsg: "",
             errorUsernameMsg: "",
-            errorPasswordMsg: ""
+            errorPasswordMsg: "",
+            unauthorized: ""
         };
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleEnterKeyPressSubmit = this.handleEnterKeyPressSubmit.bind(this);
+        this.handleEnterKeyPressUsername = this.handleEnterKeyPressUsername.bind(this);
+        this.handleEnterKeyPressAccount = this.handleEnterKeyPressAccount.bind(this);
         this.handleAccount = this.handleAccount.bind(this);
         this.handlePassword = this.handlePassword.bind(this);
         this.handleUsername = this.handleUsername.bind(this);
@@ -90,13 +107,24 @@ class Login extends Component {
         event.preventDefault();
     }
 
+    handlePassword (event) {
+        this.setState({password: event.target.value});
+        event.preventDefault();
+    }
     handleLink () {
         window.open("https://mondora.com/#!/", "_blank");
     }
 
-    handlePassword (event) {
-        this.setState({password: event.target.value});
-        event.preventDefault();
+    handleEnterKeyPressAccount (event) {
+        if (event.charCode === 13){
+            document.getElementById("username").focus();
+        }
+    }
+
+    handleEnterKeyPressUsername (event) {
+        if (event.charCode === 13){
+            document.getElementById("password").focus();
+        }
     }
 
     handleEnterKeyPressSubmit (event) {
@@ -163,9 +191,31 @@ class Login extends Component {
         }
     }
 
+    renderSpinner () {
+        return (
+            <Dialog
+                contentStyle={styles.dialog}
+                modal={true}
+                open={true}
+            >
+                <CircularProgress color={colors.blue700} size={100} style={styles.progress} thickness={5} />
+            </Dialog>
+        );
+    }
+    credentialError () {
+        return (
+            <Dialog
+                contentStyle={styles.dialog}
+                open={true}
+                title="Utente non autorizzato"
+            />
+        );
+    }
     render () {
+        const {auth} = this.props;
         return (
             <div style={styles.appContainer}>
+                {auth.isLoggingIn ? this.renderSpinner() : null}
                 <div>
                     <div style={styles.title}>
                         {"Jira Activity Report"}
@@ -175,22 +225,25 @@ class Login extends Component {
                             errorText={this.state.errorAccountMsg}
                             floatingLabelText="Account"
                             hintText="Account"
+                            id="account"
                             onChange={this.handleAccount}
-                            onKeyPress={this.handleEnterKeyPressChange}
+                            onKeyPress={this.handleEnterKeyPressAccount}
                             style={{width: "100%"}}
                         />
                         <TextField
                             errorText={this.state.errorUsernameMsg}
                             floatingLabelText="Username"
                             hintText="Username"
+                            id="username"
                             onChange={this.handleUsername}
-                            onKeyPress={this.handleEnterKeyPressChange}
+                            onKeyPress={this.handleEnterKeyPressUsername}
                             style={{width: "100%"}}
                         />
                         <TextField
                             errorText={this.state.errorPasswordMsg}
                             floatingLabelText="Password"
                             hintText="Password"
+                            id="password"
                             onChange={this.handlePassword}
                             onKeyPress={this.handleEnterKeyPressSubmit}
                             style={{width: "100%"}}
@@ -224,8 +277,9 @@ class Login extends Component {
     }
 }
 
-function mapStateToProps () {
+function mapStateToProps (state) {
     return {
+        auth: state.auth
     };
 }
 function mapDispatchToProps (dispatch) {
