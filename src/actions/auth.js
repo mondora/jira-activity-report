@@ -21,7 +21,7 @@ export function login (account, username, password) {
     return async dispatch => {
         dispatch({type: LOGIN_START, payload: {account, username}});
         try {
-            const {data} = await axios.post(`${API_URL}/session`, {username, password}, {headers: {account}});
+            const {data} = await axios.post(`${API_URL}/session`, {username, password}, {withCredentials: true, headers: {account}});
             dispatch({
                 type: LOGIN_SUCCESS,
                 payload: data

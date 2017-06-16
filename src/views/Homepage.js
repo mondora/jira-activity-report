@@ -98,11 +98,8 @@ const styles = {
 class Homepage extends Component {
 
     static propTypes = {
-        auth: PropTypes.shape({
-            // username: PropTypes.string.isRequired,
-            // password: PropTypes.string.isRequired
-        }).isRequired,
-        // board: PropTypes.array.isRequired,
+        auth: PropTypes.shape.isRequired,
+        board: PropTypes.object.isRequired,
         getBoard: PropTypes.func.isRequired,
         getProject: PropTypes.func.isRequired,
         getSprint: PropTypes.func.isRequired,
@@ -116,10 +113,12 @@ class Homepage extends Component {
         super(props);
         this.state = {
             open: true,
-            selectedProject: null
+            selectedProject: null,
+            selectedBoard: null
         };
         this.handleLogout = this.handleLogout.bind(this);
         this.openDrawer = this.openDrawer.bind(this);
+        this.renderCheckboxBoard = this.renderCheckboxBoard.bind(this);
         this.renderCheckboxProject = this.renderCheckboxProject.bind(this);
         this.renderCheckboxIssue = this.renderCheckboxIssue.bind(this);
     }
@@ -127,13 +126,16 @@ class Homepage extends Component {
     componentWillMount () {
         const {auth: {account, jwt}} = this.props;
         this.props.getProject(account, jwt);
-        // this.props.getBoard(account, username, password);
+        this.props.getBoard(account, jwt);
     }
 
     componentWillReceiveProps (nextProps) {
-        const {project} = this.props;
+        const {project, board} = this.props;
         if (nextProps.project && nextProps.project !== project) {
             this.setState({selectedProject: nextProps.project[0] && nextProps.project[0].id});
+        }
+        if (nextProps.board && nextProps.board !== board) {
+            this.setState({selectedBoard: nextProps.board[0] && nextProps.board[0].id});
         }
     }
 
@@ -146,13 +148,31 @@ class Homepage extends Component {
         this.setState({open: !this.state.open});
     }
 
+    onSelectBoard (element) {
+        this.setState({
+            selectedBoard: element.id
+        });
+    }
+
     onSelectProject (element) {
         this.setState({
             selectedProject: element.id
         });
-        console.log(element.id);
-        console.log(element.key);
-        console.log(element.name);
+    }
+
+    renderCheckboxBoard (element) {
+        return (
+            <ListItem key={element.id}>
+                <Checkbox
+                    checked={element.id === this.state.selectedBoard}
+                    iconStyle={styles.checkbox}
+                    label={element.name}
+                    labelPosition="left"
+                    onCheck={this.onSelectProject.bind(this, element)}
+                    style={styles.checkBoxLabel}
+                />
+            </ListItem>
+        );
     }
 
     renderCheckboxProject (element) {
@@ -184,7 +204,7 @@ class Homepage extends Component {
     }
 
     render () {
-        const {auth, project, sprint} = this.props;
+        const {auth, project, sprint, board} = this.props;
         const sprintIssue = {
             "expand": "schema,names",
             "startAt": 0,
@@ -732,6 +752,14 @@ class Homepage extends Component {
                         <ListItem
                             disabled={true}
                             key={1}
+                            nestedItems={board.values ? board.values.map(this.renderCheckboxBoard) : []}
+                            primaryText="Boards"
+                            style={styles.list}
+                        />
+                        <Divider />
+                        <ListItem
+                            disabled={true}
+                            key={2}
                             nestedItems={project.map(this.renderCheckboxProject)}
                             primaryText="Projects"
                             style={styles.list}
@@ -739,7 +767,7 @@ class Homepage extends Component {
                         <Divider />
                         <ListItem
                             disabled={true}
-                            key={2}
+                            key={3}
                             nestedItems={sprintData.values.map(this.renderCheckboxProject)}
                             primaryText="Sprints"
                             style={styles.list}
@@ -747,7 +775,7 @@ class Homepage extends Component {
                         <Divider />
                         <ListItem
                             disabled={true}
-                            key={3}
+                            key={4}
                             nestedItems={sprint.map(this.renderCheckboxProject)}
                             primaryText="Users"
                             style={styles.list}
@@ -755,7 +783,7 @@ class Homepage extends Component {
                         <Divider />
                         <ListItem
                             disabled={true}
-                            key={4}
+                            key={5}
                             nestedItems={sprintIssue.issues.map(this.renderCheckboxIssue)}
                             primaryText="Epics"
                             style={styles.list}
@@ -763,7 +791,7 @@ class Homepage extends Component {
                         <Divider />
                         <ListItem
                             disabled={true}
-                            key={5}
+                            key={6}
                             nestedItems={sprint.map(this.renderCheckboxProject)}
                             primaryText="Stories"
                             style={styles.list}

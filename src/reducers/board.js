@@ -1,6 +1,6 @@
 import {GET_BOARD_SUCCESS, GET_BOARD_FAILURE} from "../actions/board";
 
-const initialState = [];
+const initialState = {};
 
 export default function board (state = initialState, action) {
     const {type, payload} = action;
